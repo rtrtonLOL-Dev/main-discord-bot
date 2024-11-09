@@ -1,8 +1,12 @@
-import { container } from '@sapphire/pieces';
 import puppeteer from 'puppeteer';
+import { container } from '@sapphire/pieces';
+import { htmlFunctions } from "@/lib/util/html";
 import HTMLImageProcessor from "@/lib/structures/HTMLImageProcessor"
+import * as ImageGenerators from '@/lib/util/image-generators';
 
-container.imageProcessor = await HTMLImageProcessor.launch({
+const { div, img, a, th, tr, td } = htmlFunctions;
+
+const imageProcessor = await HTMLImageProcessor.launch({
     executablePath: process.env.DEV_DEPLOYMENT === 'true' ? puppeteer.executablePath() : '/usr/bin/google-chrome-stable',
     headless: "shell",
     // headless: false,
@@ -42,6 +46,9 @@ container.imageProcessor = await HTMLImageProcessor.launch({
         '--password-store=basic',
         '--use-gl=swiftshader',
         '--use-mock-keychain',
-        '--auto-open-devtools-for-tabs'
+        // '--auto-open-devtools-for-tabs'
     ]
 });
+
+container.imageProcessor = imageProcessor;
+container.imageGenerators = ImageGenerators

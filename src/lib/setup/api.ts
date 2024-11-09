@@ -1,8 +1,6 @@
-import { BotGraphQLAPI } from '@/lib/extensions/BotGraphQLAPI';
 import { container } from '@sapphire/pieces';
+import * as BotAPI from '@/lib/util/bot-api';
+import * as PublicAPI from '@/lib/util/public-api';
 
-const { BOT_ENDPOINT_API_KEY } = process.env
-
-container.api = {
-    bot: new BotGraphQLAPI(BOT_ENDPOINT_API_KEY)
-};
+container.api = BotAPI;
+container.experience = PublicAPI;

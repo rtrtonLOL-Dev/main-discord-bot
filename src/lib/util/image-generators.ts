@@ -1,10 +1,10 @@
 import { container } from "@sapphire/pieces";
-import { readAssetFile } from "@/lib/util/files";
+import { imageToBase64, readAssetFile } from "@/lib/util/files";
 import { htmlFunctions } from "@/lib/util/html";
 
 const { div, img, a, th, tr, td } = htmlFunctions;
 
-export function getResetTime(reset: Date, includeHours: boolean = false) {
+export function getResetTime(reset: Date, includeDays: boolean = false) {
     const nowSeconds = new Date().getTime() / 1000;
     const resetSeconds = reset.getTime() / 1000
 
@@ -17,7 +17,7 @@ export function getResetTime(reset: Date, includeHours: boolean = false) {
     const seconds = Math.floor(remainingSeconds % 60).toString().padStart(2, '0');
     const minutes = Math.floor((remainingSeconds % 3600) / 60).toString().padStart(2, '0');
 
-    if (!includeHours) {
+    if (!includeDays) {
         const hours = Math.floor(remainingSeconds / 3600).toString().padStart(2, '0');
         return `${hours}:${minutes}:${seconds}`;
     }
@@ -100,6 +100,99 @@ export async function generateOaklandsLeaderboard<T extends string>(options: {
             leaderboardTimer: options.resetTime,
             leaderboardColumns: columns,
             leaderboardRows: rows
+        }
+    });
+
+    return image;
+}
+
+export async function generateRankUpNotice(options: {
+    message: string;
+    background?: {
+        path?: string;
+        color?: `#${string}`;
+    }
+    role: {
+        name: string;
+        color: `#${string}`;
+    }
+}) {
+    const html = readAssetFile('/assets/html/rank-up.html');
+    
+    if (!html) {
+        throw new Error('Something went wrong with generating an oaklands leaderboard image.');
+    }
+
+    const image = await container.imageProcessor.draw({
+        transparency: true,
+        html, handlebars: {
+            roleColor: options.role.color,
+            roleName: options.role.name,
+            descriptionText: options.message,
+            backgroundColor: options?.background?.color || '#0E0911',
+            backgroundImage: options?.background?.path
+                ? imageToBase64(options?.background.path)
+                : imageToBase64('/assets/images/default.png')
+        }
+    });
+
+    return image;
+}
+
+export async function generateProfileCard(options: {
+    displayName: string;
+    username: string;
+    avatar: string;
+    activity: {
+        chat: {
+            rank: number;
+            currentProgress: number;
+            requiredProgress: number;
+            totalPoints: number;
+        };
+        voice: {
+            rank: number;
+            currentProgress: number;
+            requiredProgress: number;
+            totalPoints: number;
+        };
+    };
+}) {
+    const html = readAssetFile('/assets/html/profile-card.html');
+
+    if (!html) {
+        throw new Error('Something went wrong with generating the classic shop image.');
+    }
+
+    const image = await container.imageProcessor.draw({
+        transparency: true,
+        html, handlebars: {
+            bgGradientTop: '#0E0911',
+            bgGradientBottom: '#0E0911',
+            progressGradientLeft: '#FD9C66',
+            progressGradientRight: '#A44DFA',
+            backgroundImage: imageToBase64('/assets/images/default.png'),
+            userAvatar: options.avatar,
+            displayName: options.displayName,
+            userMention: options.username,
+            chatRank: options.activity.chat.rank,
+            voiceRank: options.activity.voice.rank,
+            totalChatPoints: options.activity.chat.totalPoints,
+            totalVoicePoints: options.activity.voice.totalPoints,
+            chatProgress: options.activity.chat.requiredProgress <= options.activity.chat.currentProgress
+                ? options.activity.chat.totalPoints.toString()
+                : `${options.activity.chat.currentProgress} / ${options.activity.chat.requiredProgress}`,
+            voiceProgress: options.activity.voice.requiredProgress <= options.activity.voice.currentProgress
+                ? options.activity.voice.totalPoints.toString()
+                : `${options.activity.voice.currentProgress} / ${options.activity.voice.requiredProgress}`,
+            chatProgressPercent: 
+                options.activity.chat.requiredProgress > options.activity.chat.currentProgress
+                ? Math.ceil((100 * options.activity.chat.currentProgress) / options.activity.chat.requiredProgress)
+                : 100,
+            voiceProgressPercent: 
+                options.activity.voice.requiredProgress > options.activity.voice.currentProgress
+                ? Math.ceil((100 * options.activity.voice.currentProgress) / options.activity.voice.requiredProgress)
+                : 100,
         }
     });
 

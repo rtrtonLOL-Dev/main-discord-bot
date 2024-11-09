@@ -1,6 +1,8 @@
-import type { VoiceRoomDetails, VoiceRoomSettingsDetails } from "@typical-developers/api-types/graphql";
+// import type { VoiceRoomDetails, VoiceRoomSettingsDetails } from "@typical-developers/api-types/graphql";
+
 import { container } from "@sapphire/pieces";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, ComponentType, EmbedBuilder, inlineCode } from "discord.js";
+import type { ActiveVoiceRoom, GuildSettings } from "@/lib/types/api";
 
 /**
  * Check if a user owns the voice room.
@@ -9,8 +11,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors, ComponentType, Em
  * @param userId The id of the user attempting to modify the voice channel state.
  * @returns {Promise<boolean>} Whether the channel can be modified or not.
  */
-export async function isOwner(guildId: string, channelId: string, userId: string): Promise<boolean> {
-    const roomDetails = await container.api.bot.getVoiceRoom(guildId, channelId);
+export async function isOwner(guildId: string, roomId: string, userId: string): Promise<boolean> {
+    const roomDetails = await container.api.getVoiceRoom(guildId, roomId);
     if (!roomDetails) return false;
 
     return roomDetails.current_owner_id === userId
@@ -23,11 +25,11 @@ export async function isOwner(guildId: string, channelId: string, userId: string
  * @param settings The settings for the voice room.
  * @returns {{ embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[]; }}}
  */
-export function voiceRoomInfoEmbed(settings: VoiceRoomDetails, originSettings: VoiceRoomSettingsDetails): { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[]; } {
+export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: GuildSettings['spawn_rooms'][any]): { embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[]; } {
     const embed = new EmbedBuilder({
         color: Colors.Red,
         title: '🔊 Voice Room Management',
-        description: `Created By: <@${settings.created_by_user_id}>\n` +
+        description: `Created By: <@${settings.original_owner_id}>\n` +
             `Original Channel: <#${settings.origin_channel_id}>\n` +
             `Locked State: ${inlineCode(`${settings.is_locked}`)}\n\n` +
             `The voice room owner can use the buttons below to manage the current state of the voice room.`
@@ -66,11 +68,10 @@ export function voiceRoomInfoEmbed(settings: VoiceRoomDetails, originSettings: V
  * Get the settings for a voice room.
  * @param guildId The id of the guild.
  * @param originId The id of the channel that initated the creation.
- * @returns {Promise<VoiceRoomSettingsDetails>}
  */
-export async function voiceRoomSettingsFromOrigin(guildId: string, originId: string): Promise<VoiceRoomSettingsDetails> {
-    const rooms = (await container.api.bot.getGuildSettings(guildId)).voice_rooms;
-    const index = rooms.findIndex(({ voice_channel_id }) => voice_channel_id === originId);
+export async function voiceRoomSettingsFromOrigin(guildId: string, originId: string) {
+    const rooms = (await container.api.getGuildSettings(guildId)).spawn_rooms;
+    const settings = rooms.find(({ channel_id }) => channel_id === originId);
 
-    return rooms[index];
+    return settings;
 }

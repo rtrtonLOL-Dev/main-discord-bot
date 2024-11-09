@@ -20,16 +20,16 @@ export class RenameVoiceRoom extends InteractionHandler {
     public async run(interaction: ModalSubmitInteraction, limit: number) {
         if (!interaction.guildId || !interaction.channelId) return;
 
-        const info = await this.container.api.bot.getVoiceRoom(interaction.guildId, interaction.channelId);
+        const room = await this.container.api.getVoiceRoom(interaction.guildId, interaction.channelId);
         const channel = interaction.channel;
 
-        if (!info || !channel) return;
+        if (!room || !channel) return;
         if (!channel.isVoiceBased()) return;
 
-        const originSettings = await voiceRoomSettingsFromOrigin(interaction.guildId, info.origin_channel_id);
+        const originSettings = await voiceRoomSettingsFromOrigin(interaction.guildId, room.origin_channel_id);
         if (!originSettings) return;
 
-        if (info.is_locked) {
+        if (room.is_locked) {
             throw new UserError({ identifier: 'CHANNEL_IS_LOCKED', message: 'You cannot change the limit for a room that is locked.' });
         }
 
@@ -39,6 +39,10 @@ export class RenameVoiceRoom extends InteractionHandler {
         
         if (originSettings.user_limit !== 0 && limit > originSettings.user_limit) {
             throw new UserError({ identifier: 'LIMIT_TOO_HIGH', message: `You cannot set the limit past the original limit of ${originSettings.user_limit}` });
+        }
+
+        if (limit >= 100) {
+            throw new UserError({ identifier: 'LIMIT_PAST_MAX', message: `You cannot set the limit to 100 or more.` });
         }
 
         await interaction.deferReply({ ephemeral: true, fetchReply: true });

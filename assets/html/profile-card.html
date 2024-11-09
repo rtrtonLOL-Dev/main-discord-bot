@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- <link rel="stylesheet" href="_placeholder.css"> -->
+        <style>
+            body {
+                display: inline-block;
+                color: #FFFFFF;
+                font-family: Fixel Variable, Twemoji, sans-serif;
+            }
+
+            #root {
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                width: 650px;
+                max-width: 650px;
+                gap: 20px;
+                padding: 30px;
+                border-radius: 20px;
+                background: 
+                    linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.20) 20%, rgba(0,0,0,0.70) 100%),
+                    var(--base64-image),
+                    linear-gradient(to bottom, var(--root-color-top) 0%, var(--root-color-bottom) 100%);
+                background-size: auto, cover;
+                background-repeat: repeat, no-repeat;
+                text-shadow: 0px 1px 8px rgba(0, 0, 0, 0.45);
+            }
+
+            svg {
+                filter: drop-shadow(0px 1px 8px rgba(0, 0, 0, 0.45));
+            }
+
+            .info {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .info .user {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .user .avatar {
+                width: 85px;
+                height: 85px;
+                border-radius: 15px;
+                background-color: rgba(255, 255, 255, 0.35);
+                filter: drop-shadow(0px 1px 8px rgba(0, 0, 0, 0.45));
+            }
+
+            .user .profile {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .user .profile .name {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .name .display {
+                font-size: 24px;
+                font-weight: 900;
+                margin-bottom: -3px;
+            }
+
+            .name .mention {
+                font-size: 14px;
+                font-weight: 750;
+            }
+
+            /**/
+
+            .profile .roles {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+            }
+
+            .roles .role-pill {
+                z-index: 1;
+                display: flex;
+                position: relative;
+                width: fit-content;
+                padding: 4px 8px;
+                padding-bottom: 2px;
+                border-radius: 8px;
+                outline: 1px solid var(--role-color);
+                box-shadow: 0 0 15px var(--role-color);
+
+                color: var(--role-color);
+                background-color: var(--role-color);
+                font-size: 12px;
+                text-align: center;
+                text-transform: uppercase;
+                text-shadow: none;
+                font-weight: 600;
+            }
+
+            .roles .role-pill::after {
+                content: "";
+                z-index: -1;
+                position: absolute;
+                border-radius: 8px;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: black;
+                opacity: 0.7;
+            }
+
+            /**/
+
+            .user .ranks {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .ranks .rank {
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+                font-size: 20px;
+                font-weight: 750;
+                justify-content: right;
+            }
+
+            /**/
+
+            .progression {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .progression .progress {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .progress .bar {
+                width: 100%;
+                height: 25px;
+                border-radius: 6px;
+                background-color: rgba(255, 255, 255, 0.35);
+                backdrop-filter: blur(10px);
+                filter: drop-shadow(0px 1px 4px rgba(0, 0, 0, 0.50));
+                box-shadow:inset 0px 0px 0px 2px rgba(255, 255, 255, 0.35);
+            }
+
+            .bar .progressText {
+                z-index: 1;
+                display: flex;
+                position: absolute;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 25px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .bar .gradient-mask {
+                position: absolute;
+                max-width: 100%;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .gradient-mask .gradient {
+                width: 650px;
+                height: 25px;
+                background-image:
+                    linear-gradient(to left, var(--progress-bar-left) 0%, var(--progress-bar-right) 100%);
+            }
+
+            /**/
+
+            .divider {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+            }
+
+            .divider .dash {
+                width: 100%;
+                height: 2px;
+                border-radius: 2px;
+                background-color: rgba(255, 255, 255, 0.35);
+            }
+
+            /**/
+
+            .compiled-stats {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                font-weight: 600;
+            }
+
+            .compiled-stats .stat {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .compiled-stats .separator {
+                width: 5px;
+                height: 5px;
+                border-radius: 5px;
+                background-color: rgba(255, 255, 255, 0.35);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root" style="
+                --root-color-top: {{bgGradientTop}};
+                --root-color-bottom: {{bgGradientBottom}};
+                --progress-bar-left: {{progressGradientLeft}};
+                --progress-bar-right: {{progressGradientRight}};
+                --base64-image: url('data:image/png;base64,{{backgroundImage}}');
+                --chat-progress: {{chatProgressPercent}}%;
+                --voice-progress: {{voiceProgressPercent}}%;
+            ">
+            <div class="info">
+                <div class="user">
+                    <img class="avatar" src="{{userAvatar}}" />
+                    <div class="profile">
+                        <div class="name">
+                            <a class="display">{{displayName}}</a>
+                            <a class="mention">@{{userMention}}</a>
+                        </div>
+                        <!-- TODO: Make it where there can be more than 3. -->
+                        <!-- Any code will have to splice the array of roles for the time being. -->
+                        <!-- <div class="roles">
+                            <a class="role-pill" style="--role-color: #FF5B5B;">Role 1</a>
+                            <a class="role-pill" style="--role-color: #FFC05B;">Role 2</a>
+                            <a class="role-pill" style="--role-color: #5BFF74;">Role 3</a>
+                        </div> -->
+                    </div>
+                    <div class="ranks">
+                        <div class="rank chat">
+                            <a>#{{chatRank}}</a>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10.992 5H5.65866C5.44199 5 5.23366 5.00833 5.03366 5.03333C2.79199 5.225 1.66699 6.55 1.66699 8.99167V12.325C1.66699 15.6583 3.00033 16.3167 5.65866 16.3167H5.99199C6.17533 16.3167 6.41699 16.4417 6.52533 16.5833L7.52533 17.9167C7.96699 18.5083 8.68366 18.5083 9.12533 17.9167L10.1253 16.5833C10.2503 16.4167 10.4503 16.3167 10.6587 16.3167H10.992C13.4337 16.3167 14.7587 15.2 14.9503 12.95C14.9753 12.75 14.9837 12.5417 14.9837 12.325V8.99167C14.9837 6.33333 13.6503 5 10.992 5ZM5.41699 11.6667C4.95033 11.6667 4.58366 11.2917 4.58366 10.8333C4.58366 10.375 4.95866 10 5.41699 10C5.87533 10 6.25033 10.375 6.25033 10.8333C6.25033 11.2917 5.87533 11.6667 5.41699 11.6667ZM8.32533 11.6667C7.85866 11.6667 7.49199 11.2917 7.49199 10.8333C7.49199 10.375 7.86699 10 8.32533 10C8.78366 10 9.15866 10.375 9.15866 10.8333C9.15866 11.2917 8.79199 11.6667 8.32533 11.6667ZM11.242 11.6667C10.7753 11.6667 10.4087 11.2917 10.4087 10.8333C10.4087 10.375 10.7837 10 11.242 10C11.7003 10 12.0753 10.375 12.0753 10.8333C12.0753 11.2917 11.7003 11.6667 11.242 11.6667Z" fill="white"/>
+                                <path d="M18.3167 5.65829V8.99163C18.3167 10.6583 17.8 11.7916 16.7667 12.4166C16.5167 12.5666 16.225 12.3666 16.225 12.075L16.2334 8.99163C16.2334 5.65829 14.325 3.74996 10.9917 3.74996L5.91671 3.75829C5.62504 3.75829 5.42504 3.46663 5.57504 3.21663C6.20004 2.18329 7.33338 1.66663 8.99171 1.66663H14.325C16.9834 1.66663 18.3167 2.99996 18.3167 5.65829Z" fill="white"/>
+                            </svg>
+                        </div>
+                        <div class="rank voice">
+                            <a>#{{voiceRank}}</a>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 18.275C5.8 18.275 2.375 14.8583 2.375 10.65V9.08333C2.375 8.75833 2.64167 8.5 2.95833 8.5C3.275 8.5 3.54167 8.76667 3.54167 9.08333V10.65C3.54167 14.2083 6.43333 17.1 9.99167 17.1C13.55 17.1 16.4417 14.2083 16.4417 10.65V9.08333C16.4417 8.75833 16.7083 8.5 17.025 8.5C17.3417 8.5 17.6083 8.76667 17.6083 9.08333V10.65C17.625 14.8583 14.2 18.275 10 18.275Z" fill="white"/>
+                                <path d="M9.99984 1.66663C7.19984 1.66663 4.9165 3.94996 4.9165 6.74996V10.6583C4.9165 13.4583 7.19984 15.7416 9.99984 15.7416C12.7998 15.7416 15.0832 13.4583 15.0832 10.6583V6.74996C15.0832 3.94996 12.7998 1.66663 9.99984 1.66663ZM11.8165 8.82496C11.7582 9.04996 11.5498 9.19996 11.3248 9.19996C11.2832 9.19996 11.2332 9.19163 11.1915 9.18329C10.3415 8.94996 9.4415 8.94996 8.5915 9.18329C8.3165 9.25829 8.0415 9.09996 7.9665 8.82496C7.8915 8.55829 8.04984 8.27496 8.32484 8.19996C9.34984 7.91663 10.4332 7.91663 11.4582 8.19996C11.7332 8.27496 11.8915 8.54996 11.8165 8.82496ZM12.5248 6.51663C12.4498 6.72496 12.2582 6.84996 12.0498 6.84996C11.9915 6.84996 11.9332 6.84163 11.8748 6.81663C10.5998 6.34996 9.19984 6.34996 7.92484 6.81663C7.65817 6.91663 7.3665 6.78329 7.2665 6.51663C7.17484 6.25829 7.30817 5.96663 7.57484 5.86663C9.07484 5.32496 10.7248 5.32496 12.2165 5.86663C12.4832 5.96663 12.6165 6.25829 12.5248 6.51663Z" fill="white"/>
+                            </svg>
+                        </div>
+                        <!-- <div class="rank vouch">
+                            <a>#1.2K</a>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7.49984 1.66663C5.3165 1.66663 3.5415 3.44163 3.5415 5.62496C3.5415 7.76663 5.2165 9.49996 7.39984 9.57496C7.4665 9.56663 7.53317 9.56663 7.58317 9.57496C7.59984 9.57496 7.60817 9.57496 7.62484 9.57496C7.63317 9.57496 7.63317 9.57496 7.6415 9.57496C9.77484 9.49996 11.4498 7.76663 11.4582 5.62496C11.4582 3.44163 9.68317 1.66663 7.49984 1.66663Z" fill="white"/>
+                                <path d="M11.7333 11.7917C9.4083 10.2417 5.61663 10.2417 3.27497 11.7917C2.21663 12.5 1.6333 13.4583 1.6333 14.4833C1.6333 15.5083 2.21663 16.4583 3.26663 17.1583C4.4333 17.9417 5.96663 18.3333 7.49997 18.3333C9.0333 18.3333 10.5666 17.9417 11.7333 17.1583C12.7833 16.45 13.3666 15.5 13.3666 14.4667C13.3583 13.4417 12.7833 12.4917 11.7333 11.7917Z" fill="white"/>
+                                <path d="M16.6583 6.11659C16.7916 7.73325 15.6416 9.14992 14.05 9.34159C14.0416 9.34159 14.0416 9.34159 14.0333 9.34159H14.0083C13.9583 9.34159 13.9083 9.34159 13.8666 9.35825C13.0583 9.39992 12.3166 9.14159 11.7583 8.66659C12.6166 7.89992 13.1083 6.74992 13.0083 5.49992C12.95 4.82492 12.7166 4.20825 12.3666 3.68325C12.6833 3.52492 13.05 3.42492 13.425 3.39159C15.0583 3.24992 16.5166 4.46659 16.6583 6.11659Z" fill="white"/>
+                                <path d="M18.3254 13.825C18.2587 14.6334 17.742 15.3334 16.8754 15.8084C16.042 16.2667 14.992 16.4834 13.9504 16.4584C14.5504 15.9167 14.9004 15.2417 14.967 14.525C15.0504 13.4917 14.5587 12.5 13.5754 11.7084C13.017 11.2667 12.367 10.9167 11.6587 10.6584C13.5004 10.125 15.817 10.4834 17.242 11.6334C18.0087 12.25 18.4004 13.025 18.3254 13.825Z" fill="white"/>
+                            </svg>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="progression">
+                    <div class="progress chat">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.992 5H5.65866C5.44199 5 5.23366 5.00833 5.03366 5.03333C2.79199 5.225 1.66699 6.55 1.66699 8.99167V12.325C1.66699 15.6583 3.00033 16.3167 5.65866 16.3167H5.99199C6.17533 16.3167 6.41699 16.4417 6.52533 16.5833L7.52533 17.9167C7.96699 18.5083 8.68366 18.5083 9.12533 17.9167L10.1253 16.5833C10.2503 16.4167 10.4503 16.3167 10.6587 16.3167H10.992C13.4337 16.3167 14.7587 15.2 14.9503 12.95C14.9753 12.75 14.9837 12.5417 14.9837 12.325V8.99167C14.9837 6.33333 13.6503 5 10.992 5ZM5.41699 11.6667C4.95033 11.6667 4.58366 11.2917 4.58366 10.8333C4.58366 10.375 4.95866 10 5.41699 10C5.87533 10 6.25033 10.375 6.25033 10.8333C6.25033 11.2917 5.87533 11.6667 5.41699 11.6667ZM8.32533 11.6667C7.85866 11.6667 7.49199 11.2917 7.49199 10.8333C7.49199 10.375 7.86699 10 8.32533 10C8.78366 10 9.15866 10.375 9.15866 10.8333C9.15866 11.2917 8.79199 11.6667 8.32533 11.6667ZM11.242 11.6667C10.7753 11.6667 10.4087 11.2917 10.4087 10.8333C10.4087 10.375 10.7837 10 11.242 10C11.7003 10 12.0753 10.375 12.0753 10.8333C12.0753 11.2917 11.7003 11.6667 11.242 11.6667Z" fill="white"/>
+                            <path d="M18.3167 5.65829V8.99163C18.3167 10.6583 17.8 11.7916 16.7667 12.4166C16.5167 12.5666 16.225 12.3666 16.225 12.075L16.2334 8.99163C16.2334 5.65829 14.325 3.74996 10.9917 3.74996L5.91671 3.75829C5.62504 3.75829 5.42504 3.46663 5.57504 3.21663C6.20004 2.18329 7.33338 1.66663 8.99171 1.66663H14.325C16.9834 1.66663 18.3167 2.99996 18.3167 5.65829Z" fill="white"/>
+                        </svg>
+                        <div class="bar">
+                            <div class="progressText">{{chatProgress}}</div>
+                            <div class="gradient-mask" style="width: var(--chat-progress);">
+                                <div class="gradient"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress voice">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 18.275C5.8 18.275 2.375 14.8583 2.375 10.65V9.08333C2.375 8.75833 2.64167 8.5 2.95833 8.5C3.275 8.5 3.54167 8.76667 3.54167 9.08333V10.65C3.54167 14.2083 6.43333 17.1 9.99167 17.1C13.55 17.1 16.4417 14.2083 16.4417 10.65V9.08333C16.4417 8.75833 16.7083 8.5 17.025 8.5C17.3417 8.5 17.6083 8.76667 17.6083 9.08333V10.65C17.625 14.8583 14.2 18.275 10 18.275Z" fill="white"/>
+                            <path d="M9.99984 1.66663C7.19984 1.66663 4.9165 3.94996 4.9165 6.74996V10.6583C4.9165 13.4583 7.19984 15.7416 9.99984 15.7416C12.7998 15.7416 15.0832 13.4583 15.0832 10.6583V6.74996C15.0832 3.94996 12.7998 1.66663 9.99984 1.66663ZM11.8165 8.82496C11.7582 9.04996 11.5498 9.19996 11.3248 9.19996C11.2832 9.19996 11.2332 9.19163 11.1915 9.18329C10.3415 8.94996 9.4415 8.94996 8.5915 9.18329C8.3165 9.25829 8.0415 9.09996 7.9665 8.82496C7.8915 8.55829 8.04984 8.27496 8.32484 8.19996C9.34984 7.91663 10.4332 7.91663 11.4582 8.19996C11.7332 8.27496 11.8915 8.54996 11.8165 8.82496ZM12.5248 6.51663C12.4498 6.72496 12.2582 6.84996 12.0498 6.84996C11.9915 6.84996 11.9332 6.84163 11.8748 6.81663C10.5998 6.34996 9.19984 6.34996 7.92484 6.81663C7.65817 6.91663 7.3665 6.78329 7.2665 6.51663C7.17484 6.25829 7.30817 5.96663 7.57484 5.86663C9.07484 5.32496 10.7248 5.32496 12.2165 5.86663C12.4832 5.96663 12.6165 6.25829 12.5248 6.51663Z" fill="white"/>
+                        </svg>
+                        <div class="bar">
+                            <div class="progressText">{{voiceProgress}}</div>
+                            <div class="gradient-mask" style="width: var(--voice-progress);">
+                                <div class="gradient"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="divider">
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+                <div class="dash"></div>
+            </div>
+            <div class="compiled-stats">
+                <div class="stat">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.992 5H5.65866C5.44199 5 5.23366 5.00833 5.03366 5.03333C2.79199 5.225 1.66699 6.55 1.66699 8.99167V12.325C1.66699 15.6583 3.00033 16.3167 5.65866 16.3167H5.99199C6.17533 16.3167 6.41699 16.4417 6.52533 16.5833L7.52533 17.9167C7.96699 18.5083 8.68366 18.5083 9.12533 17.9167L10.1253 16.5833C10.2503 16.4167 10.4503 16.3167 10.6587 16.3167H10.992C13.4337 16.3167 14.7587 15.2 14.9503 12.95C14.9753 12.75 14.9837 12.5417 14.9837 12.325V8.99167C14.9837 6.33333 13.6503 5 10.992 5ZM5.41699 11.6667C4.95033 11.6667 4.58366 11.2917 4.58366 10.8333C4.58366 10.375 4.95866 10 5.41699 10C5.87533 10 6.25033 10.375 6.25033 10.8333C6.25033 11.2917 5.87533 11.6667 5.41699 11.6667ZM8.32533 11.6667C7.85866 11.6667 7.49199 11.2917 7.49199 10.8333C7.49199 10.375 7.86699 10 8.32533 10C8.78366 10 9.15866 10.375 9.15866 10.8333C9.15866 11.2917 8.79199 11.6667 8.32533 11.6667ZM11.242 11.6667C10.7753 11.6667 10.4087 11.2917 10.4087 10.8333C10.4087 10.375 10.7837 10 11.242 10C11.7003 10 12.0753 10.375 12.0753 10.8333C12.0753 11.2917 11.7003 11.6667 11.242 11.6667Z" fill="white"/>
+                        <path d="M18.3167 5.65829V8.99163C18.3167 10.6583 17.8 11.7916 16.7667 12.4166C16.5167 12.5666 16.225 12.3666 16.225 12.075L16.2334 8.99163C16.2334 5.65829 14.325 3.74996 10.9917 3.74996L5.91671 3.75829C5.62504 3.75829 5.42504 3.46663 5.57504 3.21663C6.20004 2.18329 7.33338 1.66663 8.99171 1.66663H14.325C16.9834 1.66663 18.3167 2.99996 18.3167 5.65829Z" fill="white"/>
+                    </svg>
+                    <a>{{totalChatPoints}} Chat Points</a>
+                </div>
+                <div class="separator"></div>
+                <div class="stat">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 18.275C5.8 18.275 2.375 14.8583 2.375 10.65V9.08333C2.375 8.75833 2.64167 8.5 2.95833 8.5C3.275 8.5 3.54167 8.76667 3.54167 9.08333V10.65C3.54167 14.2083 6.43333 17.1 9.99167 17.1C13.55 17.1 16.4417 14.2083 16.4417 10.65V9.08333C16.4417 8.75833 16.7083 8.5 17.025 8.5C17.3417 8.5 17.6083 8.76667 17.6083 9.08333V10.65C17.625 14.8583 14.2 18.275 10 18.275Z" fill="white"/>
+                        <path d="M9.99984 1.66663C7.19984 1.66663 4.9165 3.94996 4.9165 6.74996V10.6583C4.9165 13.4583 7.19984 15.7416 9.99984 15.7416C12.7998 15.7416 15.0832 13.4583 15.0832 10.6583V6.74996C15.0832 3.94996 12.7998 1.66663 9.99984 1.66663ZM11.8165 8.82496C11.7582 9.04996 11.5498 9.19996 11.3248 9.19996C11.2832 9.19996 11.2332 9.19163 11.1915 9.18329C10.3415 8.94996 9.4415 8.94996 8.5915 9.18329C8.3165 9.25829 8.0415 9.09996 7.9665 8.82496C7.8915 8.55829 8.04984 8.27496 8.32484 8.19996C9.34984 7.91663 10.4332 7.91663 11.4582 8.19996C11.7332 8.27496 11.8915 8.54996 11.8165 8.82496ZM12.5248 6.51663C12.4498 6.72496 12.2582 6.84996 12.0498 6.84996C11.9915 6.84996 11.9332 6.84163 11.8748 6.81663C10.5998 6.34996 9.19984 6.34996 7.92484 6.81663C7.65817 6.91663 7.3665 6.78329 7.2665 6.51663C7.17484 6.25829 7.30817 5.96663 7.57484 5.86663C9.07484 5.32496 10.7248 5.32496 12.2165 5.86663C12.4832 5.96663 12.6165 6.25829 12.5248 6.51663Z" fill="white"/>
+                    </svg>
+                    <a>{{totalVoicePoints}} Voice Points</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

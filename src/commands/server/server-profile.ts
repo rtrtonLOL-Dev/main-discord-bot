@@ -1,10 +1,6 @@
-import { Command, UserError } from '@sapphire/framework';
+import { Command } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { type ApplicationCommandOptionData, GuildMember, ApplicationCommandOptionType, ApplicationCommandType, AttachmentBuilder } from 'discord.js';
-import { ProfileCardStyles } from '@typical-developers/api-types/graphql';
-import { ProfileCard, type ProfileCardCustomization } from '@/lib/extensions/ProfileCard';
-import { hexToRGB } from '@/lib/util/color';
-import { imageToBase64 } from '@/lib/util/files';
+import { GuildMember, ApplicationCommandOptionType, ApplicationCommandType, type ApplicationCommandOptionData, AttachmentBuilder } from 'discord.js';
 
 @ApplyOptions<Command.Options>({
     description: 'Get information on a server member!'
@@ -34,108 +30,51 @@ export class ServerProfile extends Command {
             });
     }
 
-    /**
-     * Get the current card styling.
-     * TODO: In the future, move this to a separate util function.
-     * @param {ProfileCardStyles} style The style to apply to the card.
-     * @returns {Promise<ProfileCardCustomization>}
-     */
-    private async getCardStyle(style: ProfileCardStyles, member: GuildMember): Promise<ProfileCardCustomization> {
-        switch (style) {
-            case ProfileCardStyles.Discord:
-                const user = await member.user.fetch(true);
-
-                return {
-                    backgroundImageUrl: user.bannerURL({ forceStatic: true, size: 1024 })
-                };
-            case ProfileCardStyles.Galaxies:
-                return {
-                    backgroundImageUrl: `data:image/png;base64,${imageToBase64('/assets/images/profile-galaxies.png')}`,
-                    progressBar: {
-                        gradient1: `#4DBCFA`,
-                        gradient2: `#8466FD`
-                    }
-                }
-            case ProfileCardStyles.Topography:
-                return {
-                    backgroundImageUrl: `data:image/png;base64,${imageToBase64('/assets/images/profile-topography.png')}`,
-                    progressBar: {
-                        gradient1: `#DB0000`,
-                        gradient2: `#DB0035`
-                    }
-                }
-            // Anything not yet implemented.
-            default:
-                return {};
-        }
-    }
-
     private async generateCard(interaction: Command.ContextMenuCommandInteraction | Command.ChatInputCommandInteraction, member: GuildMember) {
-        if (member.user.bot) return;
-        if (!interaction.guild) return;
-
-        const { activity_tracking } = await this.container.api.bot.getGuildSettings(interaction.guild.id);
-        if (!activity_tracking) {
-            throw new UserError({
-                identifier: 'TRACKING_DISBALED',
-                message: 'Activity tracking is not enabled for this guild.'
-            });
-        }
-
-        const profile = await this.container.api.bot.getMemberProfile(interaction.guild.id, member.id);
-        if (!profile) {
-            throw new UserError({
-                identifier: 'NO_PROFILE',
-                message: 'This user has no profile in this guild. This is likely because they have never talked here.'
+        const settings = await this.container.api.getGuildSettings(interaction.guildId!);
+        if (!settings.voice_activity.enabled && !settings.chat_activity.enabled) {
+            return await interaction.reply({
+                ephemeral: true,
+                content: 'No activity tracking is enabled for this guild.',
             });
         }
 
         await interaction.deferReply({ fetchReply: true });
 
-        const { activity_info } = profile;
-        const { progression } = activity_info;
-        progression.current_roles.reverse();
+        const profile = await this.container.api.getMemberProfile(interaction.guildId!, member.id);
 
-        const tags: { name: string; color: `${string}, ${string}, ${string}` }[] = [];
-        for (const activityRole of activity_info.progression.current_roles) {
-            const role = await interaction.guild.roles.fetch(activityRole.role_id, { force: true });
-
-            if (role) {
-                tags.push({
-                    name: role.name.toUpperCase(),
-                    color: hexToRGB(role.hexColor)
-                });
-            }
-        }
-
-        const card = new AttachmentBuilder(
-            await new ProfileCard({
+        console.log(settings, profile)
+        
+        const attachment = new AttachmentBuilder(
+            await this.container.imageGenerators.generateProfileCard({
+                displayName: member.displayName,
                 username: member.user.username,
-                // Server Nickanme -> User Display Name
-                displayName: member.nickname || member.displayName,
-                // Server Avatar -> User Avatar -> Default Avatar
-                avatarUrl: member.avatarURL({ forceStatic: true, size: 128 }) || member.user.avatarURL({ forceStatic: true, size: 128 }) || member.user.defaultAvatarURL,
-                rank: activity_info.rank,
-                stats: {
-                    activityProgression: {
-                        totalPoints: activity_info.points,
-                        ...(progression.next_role?.required_points
-                            ? {
-                                currentProgress: progression.next_role.required_points - (progression.current_roles[0]?.required_points || 0) - progression.remaining_progress,
-                                requiredProgress: progression.next_role.required_points - (progression.current_roles[0]?.required_points || 0)
-                            }
-                            : { currentProgress: 0, requiredProgress: 0 }
-                        )
+                avatar: member.avatarURL({ forceStatic: true, size: 128 }) || member.user.avatarURL({ forceStatic: true, size: 128 }) || member.user.defaultAvatarURL,
+                activity: {
+                    chat: {
+                        rank: profile.chat_activity.rank, totalPoints: profile.chat_activity.points,
+                        ...(profile.chat_activity.next_role) 
+                        ? {
+                            currentProgress: profile.chat_activity.next_role.required_points - (profile.chat_activity.current_roles[0]?.required_points || 0) - profile.chat_activity.remaining_progress,
+                            requiredProgress: profile.chat_activity.next_role.required_points - (profile.chat_activity.current_roles[0]?.required_points || 0)
+                        }
+                        : { currentProgress: 0, requiredProgress: 0 }
+                    },
+                    voice: {
+                        rank: profile.voice_activity.rank, totalPoints: profile.voice_activity.points,
+                        ...(profile.voice_activity.next_role) 
+                        ? {
+                            currentProgress: profile.voice_activity.next_role.required_points - (profile.voice_activity.current_roles[0]?.required_points || 0) - profile.voice_activity.remaining_progress,
+                            requiredProgress: profile.voice_activity.next_role.required_points - (profile.voice_activity.current_roles[0]?.required_points || 0)
+                        }
+                        : { currentProgress: 0, requiredProgress: 0 }
                     }
-                },
-                tags: tags,
-                ...await this.getCardStyle(profile.card_style, member)
-                // ...await this.getCardStyle(Math.floor(Math.random() * Object.entries(ProfileCardStyles).length), member)
-            }).draw(),
-            { name: 'card.png' }
+                }
+            }),
+            { name: `${member.id}-profile-card.png` }
         );
 
-        return await interaction.editReply({ files: [card] });
+        return interaction.editReply({ files: [attachment] });
     }
 
     public override async contextMenuRun(interaction: Command.ContextMenuCommandInteraction) {

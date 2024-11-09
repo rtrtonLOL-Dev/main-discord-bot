@@ -26,27 +26,23 @@ export class RenameVoiceRoom extends InteractionHandler {
     public async run(interaction: ButtonInteraction) {
         if (!interaction.guildId || !interaction.channelId) return;
 
-        const info = await this.container.api.bot.getVoiceRoom(interaction.guildId, interaction.channelId);
+        const room = await this.container.api.getVoiceRoom(interaction.guildId, interaction.channelId);
         const channel = interaction.channel;
 
-        if (!info || !channel || !interaction.guildId) return;
+        if (!room || !channel) return;
         if (!channel.isVoiceBased()) return;
 
-        const updatedInfo = await this.container.api.bot.updateVoiceRoom(interaction.guildId, interaction.channel.id, { is_locked: !info.is_locked });
-        if (!updatedInfo) return;
+        const updatedRoom = await this.container.api.updateVoiceRoom(interaction.guildId, interaction.channelId, { isLocked: !room.is_locked });
+        if (!updatedRoom) throw new Error('Failed to update room settings.');
 
-        const settings = await voiceRoomSettingsFromOrigin(interaction.guildId, updatedInfo.origin_channel_id);
+        const settings = await voiceRoomSettingsFromOrigin(interaction.guildId, room.origin_channel_id);
         if (!settings) throw new Error('Unable to get settings.');
 
-        updatedInfo.is_locked
+        updatedRoom.is_locked
             ? await channel.setUserLimit(1)
-            // this is so ugly. but it works.
-            : await (async () => {
-                
-                await channel.setUserLimit(settings.user_limit);
-            })();
+            : await channel.setUserLimit(settings.user_limit);
 
-        await interaction.message.edit(voiceRoomInfoEmbed(updatedInfo, settings));
+        await interaction.message.edit(voiceRoomInfoEmbed(updatedRoom, settings));
         await interaction.reply({
             content: 'Successfully updated channel state.',
             ephemeral: true

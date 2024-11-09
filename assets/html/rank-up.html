@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                display: inline-block;
+                color: #FFFFFF;
+                font-family: Fixel Variable, Twemoji, sans-serif;
+            }
+
+            #root {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                padding: 30px;
+                border-radius: 20px;
+                background-color: var(--root-color);
+                background-image: 
+                    linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 20%, rgba(0,0,0,0.75) 100%),
+                    var(--base64-image);
+                background-size: auto, cover;
+                background-repeat: repeat, no-repeat;
+                overflow: hidden;
+            }
+
+            .role-pill {
+                z-index: 1;
+                display: flex;
+                position: relative;
+                padding: 4px 8px;
+                padding-bottom: 2px;
+                border-radius: 8px;
+                outline: 1px solid var(--role-color);
+                box-shadow: 0 0 15px var(--role-color);
+
+                color: var(--role-color);
+                background-color: var(--role-color);
+                font-size: 12px;
+                text-align: center;
+            }
+
+            .role-pill::after {
+                content: "";
+                z-index: -1;
+                position: absolute;
+                border-radius: 8px;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: black;
+                opacity: 0.7;
+            }
+
+            .heading {
+                display: flex;
+                flex-direction: row;
+
+                align-items: center;
+
+                gap: 5px;
+
+                font-size: 24px;
+                font-weight: 700;
+                text-shadow: 1px 1px 7px rgba(0, 0, 0, 0.45);
+            }
+
+            .heading a {
+                margin-top: 1px;
+            }
+
+            .description {
+                font-size: 14px;
+                font-weight: 500;
+                text-shadow: 1px 1px 7px rgba(0, 0, 0, 0.45);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root" style="--root-color: #0E0911; --base64-image: url('data:image/png;base64,{{backgroundImage}}');">
+            <div class="heading">
+                <a>You have unlocked the</a>
+                <!-- <div class="role-pill" style="--role-color: cyan;">Activity Role 1</div> -->
+                <div class="role-pill" style="--role-color: {{roleColor}};">{{roleName}}</div>
+                <a>activity role!</a>
+            </div>
+            <div class="description">
+                <a>{{descriptionText}}</a>
+            </div>
+        </div>
+    </body>
+</html>
