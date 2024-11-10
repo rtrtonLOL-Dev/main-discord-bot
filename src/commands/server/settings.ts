@@ -151,8 +151,8 @@ export class Settings extends Subcommand {
                     name: "type",
                     description: ".",
                     choices: [
-                        { name: "Chat Tracking", value: "voice" },
-                        { name: "Voice Tracking", value: "chat" },
+                        { name: "Chat Tracking", value: "chat" },
+                        { name: "Voice Tracking", value: "voice" },
                     ],
                     required: true
                 },
@@ -293,8 +293,10 @@ export class Settings extends Subcommand {
 
         await interaction.deferReply({ fetchReply: true });
 
-        const updated = await this.container.api.modifyActivitySettings(interaction.guild.id, type, options);
+        await this.container.api.modifyActivitySettings(interaction.guild.id, type, options);
 
-        console.log(updated);
+        return await interaction.editReply({
+            content: `Successfully updated ${type} activity tracking settings.`
+        });
     }
 }
