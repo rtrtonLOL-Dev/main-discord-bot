@@ -19,7 +19,16 @@ import {
                 { name: 'modify', chatInputRun: 'modifySpawnRoom' },
                 { name: 'remove', chatInputRun: 'removeSpawnRoom' },
             ]
-        }
+        },
+        {
+            name: 'activity-roles',
+            type: 'group',
+            entries: [
+                { name: 'add', chatInputRun: 'addChatActivityRole' },
+                { name: 'remove', chatInputRun: 'removeChatActivityRole' },
+            ]
+        },
+        { name: 'activity-tracking', chatInputRun: 'modifyActivityTracking' }
     ]
 })
 export class Settings extends Subcommand {
@@ -115,6 +124,55 @@ export class Settings extends Subcommand {
                 }
             ]
         },
+        {
+            type: ApplicationCommandOptionType.SubcommandGroup,
+            name: 'activity-roles',
+            description: "Manage the activity roles for the guild.",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.Subcommand,
+                    name: 'add',
+                    description: 'Add a new activity role.',
+                },
+                {
+                    type: ApplicationCommandOptionType.Subcommand,
+                    name: 'remove',
+                    description: 'Remove an existing activity role.',
+                }
+            ]
+        },
+        {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'activity-tracking',
+            description: "Manage the activity tracking settings for the guild.",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.String,
+                    name: "type",
+                    description: ".",
+                    choices: [
+                        { name: "Chat Tracking", value: "voice" },
+                        { name: "Voice Tracking", value: "chat" },
+                    ],
+                    required: true
+                },
+                {
+                    type: ApplicationCommandOptionType.Boolean,
+                    name: "enabled",
+                    description: "Enable / disable activity tracking."
+                },
+                {
+                    type: ApplicationCommandOptionType.Number,
+                    name: "points",
+                    description: "The amount of points that should be granted for tracking."
+                },
+                {
+                    type: ApplicationCommandOptionType.Number,
+                    name: "cooldown",
+                    description: "The duration in seconds until the next grant can be done."
+                }
+            ]
+        },
     ];
 
     public override async registerApplicationCommands(registry: Subcommand.Registry) {
@@ -207,5 +265,36 @@ export class Settings extends Subcommand {
         return await interaction.editReply({
             content: `Failed to remove the spawn room <#${channelId}>!`
         });
+    }
+
+    public async modifyActivityTracking(interaction: Subcommand.ChatInputCommandInteraction) {
+        if (!interaction.guild) return;
+        
+        const type = interaction.options.getString('type', true);
+        const options = this._removeNullOptions({
+            enabled: interaction.options.getBoolean('enabled'),
+            points: interaction.options.getNumber('points'),
+            cooldown: interaction.options.getNumber('cooldown'),
+        });
+
+        if (!Object.keys(options).length) {
+            throw new UserError({
+                identifier: 'NO_SETTINGS',
+                message: 'Please provide some settings to update.'
+            });
+        }
+
+        if (type !== 'chat' && type !== 'voice') {
+            throw new UserError({
+                identifier: 'INVALID_TYPE',
+                message: 'The provided type is not valid.'
+            });
+        }
+
+        await interaction.deferReply({ fetchReply: true });
+
+        const updated = await this.container.api.modifyActivitySettings(interaction.guild.id, type, options);
+
+        console.log(updated);
     }
 }

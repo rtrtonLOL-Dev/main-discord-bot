@@ -211,3 +211,25 @@ export async function deleteVoiceSpawnRoom(guildId: string, originId: string) {
 
     return data;
 }
+
+export async function modifyActivitySettings(guildId: string, type: 'voice' | 'chat', options: { enabled?: boolean; points?: number; cooldown?: number; }) {
+    const settings = await container.cache.get(`settings_${guildId}`);
+    const data = _requestEndpoint<{ success: boolean }>({
+        path: `/v1/${guildId}/activity-tracking/${type}/options`,
+        method: "POST",
+        body: options
+    });
+
+    if (settings) {
+        if (type === 'chat') {
+            settings.chat_activity = { ...settings.chat_activity, ...options };
+        }
+        else if (type === 'voice') {
+            settings.chat_activity = { ...settings.voice_activity, ...options };
+        }
+
+        await container.cache.set(`settings_${guildId}`, settings);
+    }
+
+    return data;
+}

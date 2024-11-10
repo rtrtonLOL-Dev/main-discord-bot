@@ -1,7 +1,7 @@
 export interface GuildSettings {
     chat_activity: {
         enabled: boolean;
-        grant_amount: number;
+        points: number;
         cooldown: number;
         deny_roles: string[];
         activity_roles: {
@@ -11,7 +11,7 @@ export interface GuildSettings {
     };
     voice_activity: {
         enabled: boolean;
-        grant_amount: number;
+        points: number;
         cooldown: number;
         deny_roles: string[];
         activity_roles: {
