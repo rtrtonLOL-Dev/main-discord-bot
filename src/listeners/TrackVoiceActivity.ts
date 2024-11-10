@@ -31,6 +31,11 @@ export class VoiceRoomCreation extends Listener {
             return;
         }
 
+        // This check is here due to tracking not working if they get moved to a different voice room.
+        // Also, just doesn't really make sense to track the spawn room channels anyways!
+        const rooms = settings.spawn_rooms.map(({ channel_id }) => channel_id);
+        if (rooms.includes(current.channelId!)) return;
+
         if (!current.channelId) {
             if (existingId) await this.container.tasks.client.removeJobScheduler(existingId);
         }
