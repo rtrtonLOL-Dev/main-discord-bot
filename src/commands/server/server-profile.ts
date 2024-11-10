@@ -43,8 +43,6 @@ export class ServerProfile extends Command {
 
         const profile = await this.container.api.getMemberProfile(interaction.guildId!, member.id);
 
-        console.log(settings, profile)
-        
         const attachment = new AttachmentBuilder(
             await this.container.imageGenerators.generateProfileCard({
                 displayName: member.displayName,
