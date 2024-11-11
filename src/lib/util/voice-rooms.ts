@@ -46,7 +46,7 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
         color: Colors.Red,
         title: '🔊 Voice Room Management',
         description: `Created By: <@${settings.original_owner_id}>\n` +
-            `Current Owner: <@${settings.current_owner_id}>` +
+            `Current Owner: <@${settings.current_owner_id}>\n` +
             `Original Channel: <#${settings.origin_channel_id}>\n` +
             `Locked State: ${inlineCode(`${settings.is_locked}`)}\n\n` +
             `The voice room owner can use the buttons below to manage the current state of the voice room.`
