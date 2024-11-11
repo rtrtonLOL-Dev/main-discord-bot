@@ -31,7 +31,11 @@ export class IncrementVoiceActivity extends ScheduledTask {
 
         const members = channel.members;
         const list = members.map((m) => m.id);
-        const active = members.filter((m) => !m.voice.mute).filter((m) => !m.voice.deaf).map((m) => m.id);
+        const active = members
+            .filter((m) => !m.voice.mute)
+            .filter((m) => !m.voice.deaf)
+            .filter((m) => !m.voice.suppress)
+            .map((m) => m.id);
 
         if (!list.includes(payload.memberId)) throw new TaskError({ task: 'IncrementVoiceActivity', payload, message: "Member is no longer connected to voice chat." });
 
