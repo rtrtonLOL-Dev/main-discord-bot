@@ -46,6 +46,7 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
         color: Colors.Red,
         title: '🔊 Voice Room Management',
         description: `Created By: <@${settings.original_owner_id}>\n` +
+            `Current Owner: <@${settings.current_owner_id}>` +
             `Original Channel: <#${settings.origin_channel_id}>\n` +
             `Locked State: ${inlineCode(`${settings.is_locked}`)}\n\n` +
             `The voice room owner can use the buttons below to manage the current state of the voice room.`
@@ -53,12 +54,6 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
 
     const components = [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder({
-                type: ComponentType.Button,
-                style: ButtonStyle.Secondary,
-                custom_id: 'voice_room.reclaim_ownership',
-                label: 'Reclaim Ownership'
-            }),
             new ButtonBuilder({
                 type: ComponentType.Button,
                 style: ButtonStyle.Secondary,
@@ -80,6 +75,21 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
                 label: 'Adjust Limit',
                 disabled: !originSettings.can_adjust_limit
             })
+        ),
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder({
+                type: ComponentType.Button,
+                style: ButtonStyle.Success,
+                custom_id: 'voice_room.reclaim_ownership',
+                label: 'Reclaim Ownership'
+            }),
+            new ButtonBuilder({
+                type: ComponentType.Button,
+                style: ButtonStyle.Danger,
+                custom_id: 'voice_room.close',
+                label: 'Close Room',
+                disabled: true
+            }),
         )
     ];
 
