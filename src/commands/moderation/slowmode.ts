@@ -1,6 +1,6 @@
-import { Command, type Awaitable, type ChatInputCommand } from '@sapphire/framework';
+import { Command } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, PermissionFlagsBits, TextChannel, type APIApplicationCommandChannelOption, type ApplicationCommandData, type ApplicationCommandOptionData } from 'discord.js';
+import { ApplicationCommandOptionType, ChannelType, ChatInputCommandInteraction, PermissionFlagsBits, TextChannel, type ApplicationCommandOptionData } from 'discord.js';
 
 @ApplyOptions<Command.Options>({
     description: 'Set a slowmode for a chennl.'
