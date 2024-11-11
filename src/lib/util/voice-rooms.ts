@@ -21,6 +21,22 @@ export async function isOwner(guildId: string, roomId: string, userId: string): 
 }
 
 /**
+ * Check if a user is the original voice room owner.
+ * @param guildId The id for the guild.
+ * @param channelId The id for the channel attempting to be modified.
+ * @param userId The id of the user attempting to modify the voice channel state.
+ * @returns {Promise<boolean>} Whether the channel can be modified or not.
+ */
+export async function isOriginalOwner(guildId: string, roomId: string, userId: string): Promise<boolean> {
+    const roomDetails = await container.api.getVoiceRoom(guildId, roomId);
+    if (!roomDetails) return false;
+
+    return roomDetails.original_owner_id === userId
+        ? true
+        : false;
+}
+
+/**
  * Generate an information embed for the voice room settings.
  * @param settings The settings for the voice room.
  * @returns {{ embeds: EmbedBuilder[]; components: ActionRowBuilder<ButtonBuilder>[]; }}}
@@ -57,6 +73,12 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
                 custom_id: 'voice_room.adjust_limit',
                 label: 'Adjust Limit',
                 disabled: !originSettings.can_adjust_limit
+            }),
+            new ButtonBuilder({
+                type: ComponentType.Button,
+                style: ButtonStyle.Secondary,
+                custom_id: 'voice_room.reclaim_ownership',
+                label: 'Reclaim Ownership'
             })
         )
     ];
