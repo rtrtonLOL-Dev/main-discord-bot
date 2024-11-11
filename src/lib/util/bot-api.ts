@@ -79,6 +79,9 @@ export async function incrementMemberPoints(guildId: string, memberId: string, t
 }
 
 export async function getVoiceRoom(guildId: string, roomId: string) {
+    const room = await container.cache.get(`voice-room_${guildId}:${roomId}`);
+    if (room) return room;
+
     const data = await _requestEndpoint<ActiveVoiceRoom>({
         path: `/v1/${guildId}/voice-rooms/${roomId}`,
         method: "GET",
