@@ -56,8 +56,8 @@ export class IncrementVoiceActivity extends ScheduledTask {
         }
 
         if (missingRoles.length === 1) {
-            const role = guild.roles.cache.get(missingRoles[0]);
-            const activityRole = updatedProfile.chat_activity.current_roles.find(({ role_id }) => role_id === missingRoles[0]);
+            const role = await guild.roles.fetch(missingRoles[0], { force: true });
+            const activityRole = updatedProfile.voice_activity.current_roles.find(({ role_id }) => role_id === missingRoles[0]);
             if (!role || !activityRole) return;
 
             const notice = new AttachmentBuilder(
@@ -69,12 +69,12 @@ export class IncrementVoiceActivity extends ScheduledTask {
             );
 
             try {
-                await channel.send({ files: [notice] });
+                await channel.send({ content: `<@${member.user.id}>`, files: [notice] });
             }
-            catch {
+            catch (e) {
                 await channel.send({
-                    content: `@${member.displayName} congrats, you've reached ${inlineCode(activityRole.required_points.toString())} points and unlocked the ${inlineCode(role.name)} activity role!`,
-                });
+                    content: `<@${member.user.id}> congrats, you've reached ${inlineCode(activityRole.required_points.toString())} points and unlocked the ${inlineCode(role.name)} activity role!`,
+                }).catch((e) => console.log(e));
             }
         }
     }
