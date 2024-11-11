@@ -62,7 +62,7 @@ export class IncrementVoiceActivity extends ScheduledTask {
 
             const notice = new AttachmentBuilder(
                 await this.container.imageGenerators.generateRankUpNotice({
-                    message: `@${member.displayName} congrats, you've reached ${activityRole.required_points} points and unlocked a new role!`,
+                    message: `@${member.user.username} congrats, you've reached ${activityRole.required_points} points and unlocked a new role!`,
                     role: { name: role.name, color: role.hexColor },
                 }),
                 { name: `${member.id}-rankup.png` },
