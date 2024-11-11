@@ -56,6 +56,12 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
             new ButtonBuilder({
                 type: ComponentType.Button,
                 style: ButtonStyle.Secondary,
+                custom_id: 'voice_room.reclaim_ownership',
+                label: 'Reclaim Ownership'
+            }),
+            new ButtonBuilder({
+                type: ComponentType.Button,
+                style: ButtonStyle.Secondary,
                 custom_id: 'voice_room.rename',
                 label: 'Rename Room',
                 disabled: !originSettings.can_rename
@@ -73,12 +79,6 @@ export function voiceRoomInfoEmbed(settings: ActiveVoiceRoom, originSettings: Gu
                 custom_id: 'voice_room.adjust_limit',
                 label: 'Adjust Limit',
                 disabled: !originSettings.can_adjust_limit
-            }),
-            new ButtonBuilder({
-                type: ComponentType.Button,
-                style: ButtonStyle.Secondary,
-                custom_id: 'voice_room.reclaim_ownership',
-                label: 'Reclaim Ownership'
             })
         )
     ];
