@@ -27,7 +27,7 @@ export class IncrementVoiceActivity extends ScheduledTask {
 
         const time = Math.floor(new Date().getTime() / 1000);
         const currentProfile = await this.container.api.getMemberProfile(payload.guildId, payload.memberId);
-        if (currentProfile.voice_activity.last_grant && time < (new Date(currentProfile.voice_activity.last_grant).getTime() / 1000) + cooldown) return;
+        if (time < (new Date(currentProfile.voice_activity.last_grant).getTime() / 1000) + cooldown) return;
 
         const members = channel.members;
         const list = members.map((m) => m.id);
@@ -45,6 +45,7 @@ export class IncrementVoiceActivity extends ScheduledTask {
 
         const member = await guild.members.fetch(payload.memberId);
         const updatedProfile = await this.container.api.incrementMemberPoints(payload.guildId, payload.memberId, 'voice');
+        console.log(currentProfile, updatedProfile);
         const memberRoles = member.roles.cache.map((r) => r.id) || [];
         const missingRoles = updatedProfile.voice_activity.current_roles
             .map((r) => r.role_id)

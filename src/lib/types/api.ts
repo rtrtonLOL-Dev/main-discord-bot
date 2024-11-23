@@ -32,7 +32,7 @@ export interface MemberProfile {
     rank: number;
     card_style: number;
     chat_activity: {
-        last_grant: string | null;
+        last_grant: string;
         rank: number;
         points: number;
         remaining_progress: number;
@@ -46,7 +46,7 @@ export interface MemberProfile {
         } | null;
     };
     voice_activity: {
-        last_grant: string | null;
+        last_grant: string;
         rank: number;
         points: number;
         remaining_progress: number;

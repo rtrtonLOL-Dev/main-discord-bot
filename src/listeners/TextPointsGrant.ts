@@ -24,7 +24,7 @@ export class PointsGrant extends Listener {
 
         const time = Math.floor(new Date().getTime() / 1000);
         const currentProfile = await this.container.api.getMemberProfile(guildId, memberId);
-        if (currentProfile.chat_activity.last_grant && time < (new Date(currentProfile.chat_activity.last_grant).getTime() / 1000) + cooldown) return;
+        if (time < (new Date(currentProfile.chat_activity.last_grant).getTime() / 1000) + cooldown) return;
 
         const updatedProfile = await this.container.api.incrementMemberPoints(guildId, memberId, 'chat');
         const memberRoles = message.member?.roles.cache.map((r) => r.id) || [];
