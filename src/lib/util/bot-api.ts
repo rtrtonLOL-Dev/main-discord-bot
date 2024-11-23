@@ -228,7 +228,7 @@ export async function modifyActivitySettings(guildId: string, type: 'voice' | 'c
             settings.chat_activity = { ...settings.chat_activity, ...options };
         }
         else if (type === 'voice') {
-            settings.chat_activity = { ...settings.voice_activity, ...options };
+            settings.voice_activity = { ...settings.voice_activity, ...options };
         }
 
         await container.cache.set(`settings_${guildId}`, settings);
