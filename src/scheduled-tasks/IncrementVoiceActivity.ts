@@ -27,7 +27,7 @@ export class IncrementVoiceActivity extends ScheduledTask {
 
         const time = Math.floor(new Date().getTime() / 1000);
         const currentProfile = await this.container.api.getMemberProfile(payload.guildId, payload.memberId);
-        if (time < (new Date(currentProfile.voice_activity.last_grant).getTime() / 1000) + cooldown) return;
+        if (currentProfile.voice_activity.last_grant && time < (new Date(currentProfile.voice_activity.last_grant).getTime() / 1000) + cooldown) return;
 
         const members = channel.members;
         const list = members.map((m) => m.id);
