@@ -105,5 +105,3 @@ export class VoiceRoomCreation extends Listener {
         }
     }
 }
-
-// Rambling Goober, Talkative Goober, Gabby Goober, Chatterbox Goober, PHD in Yapping
