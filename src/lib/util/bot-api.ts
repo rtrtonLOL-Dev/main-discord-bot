@@ -198,7 +198,7 @@ export async function modifyVoiceSpawnRoom(guildId: string, originId: string, op
 
 export async function deleteVoiceSpawnRoom(guildId: string, originId: string) {
     const settings = await getGuildSettings(guildId);
-    const data = _requestEndpoint<{ success: boolean }>({
+    const data = await _requestEndpoint<{ success: boolean }>({
         path: `/v1/${guildId}/spawn-room/${originId}/delete`,
         method: "DELETE",
     });
@@ -217,7 +217,7 @@ export async function deleteVoiceSpawnRoom(guildId: string, originId: string) {
 
 export async function modifyActivitySettings(guildId: string, type: 'voice' | 'chat', options: { enabled?: boolean; points?: number; cooldown?: number; }) {
     const settings = await getGuildSettings(guildId);
-    const data = _requestEndpoint<{ success: boolean }>({
+    const data = await _requestEndpoint<{ success: boolean }>({
         path: `/v1/${guildId}/activity-tracking/${type}/options`,
         method: "POST",
         body: options
