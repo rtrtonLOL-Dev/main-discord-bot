@@ -169,8 +169,8 @@ export async function generateProfileCard(options: {
         html, handlebars: {
             bgGradientTop: '#0E0911',
             bgGradientBottom: '#0E0911',
-            progressGradientLeft: '#FD9C66',
-            progressGradientRight: '#A44DFA',
+            progressGradientLeft: '#4D5EFA',
+            progressGradientRight: '#9F66FD',
             backgroundImage: imageToBase64('/assets/images/default.png'),
             userAvatar: options.avatar,
             displayName: options.displayName,
