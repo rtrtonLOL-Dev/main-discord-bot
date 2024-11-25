@@ -74,7 +74,9 @@ export async function incrementMemberPoints(guildId: string, memberId: string, t
         method: "PATCH"
     });
 
+    await container.cache.client.del(`member-profile_${guildId}:${memberId}`);
     await container.cache.set(`member-profile_${guildId}:${memberId}`, data, { EX: 60 * 15 });
+
     return data;
 }
 
@@ -233,6 +235,63 @@ export async function modifyActivitySettings(guildId: string, type: 'voice' | 'c
 
         await container.cache.set(`settings_${guildId}`, settings);
     }
+
+    return data;
+}
+
+export async function dumpMemberProfileCache(guildId: string) {
+    for await (const key of container.cache.client.scanIterator({
+        TYPE: "string",
+        MATCH: `member-profile_${guildId}:*`
+    })) {
+        await container.cache.client.del(key);
+    }
+}
+
+export async function addActivityRoles(guildId: string, type: 'voice' | 'chat', roles: { role_id: string; required_points: number; }[]) {
+    const settings = await getGuildSettings(guildId);
+    const data = await _requestEndpoint<{ role_id: string; required_points: number; }[]>({
+        path: `/v1/${guildId}/activity-tracking/${type}/roles/add`,
+        method: "POST",
+        body: { roles }
+    });
+
+    if (type === 'chat') {
+        settings.chat_activity.activity_roles.push(...data);
+    }
+    else if (type === 'voice') {
+        settings.voice_activity.activity_roles.push(...data);
+    }
+
+    await container.cache.set(`settings_${guildId}`, settings);
+    await dumpMemberProfileCache(guildId);
+
+    return data;
+}
+
+export async function removeActivityRoles(guildId: string, type: 'voice' | 'chat', roles: string[]) {
+    const settings = await getGuildSettings(guildId);
+    const data = await _requestEndpoint<{ role_id: string; required_points: number; }[]>({
+        path: `/v1/${guildId}/activity-tracking/${type}/roles/add`,
+        method: "POST",
+        body: { roles }
+    });
+
+    if (type === 'chat') {
+        for (const roleId of roles) {
+            const i = settings.chat_activity.activity_roles.findIndex(({ role_id }) => roleId === role_id);
+            settings.chat_activity.activity_roles.splice(i, 1);
+        }
+    }
+    else if (type === 'voice') {
+        for (const roleId of roles) {
+            const i = settings.voice_activity.activity_roles.findIndex(({ role_id }) => roleId === role_id);
+            settings.voice_activity.activity_roles.splice(i, 1);
+        }
+    }
+
+    await container.cache.set(`settings_${guildId}`, settings);
+    await dumpMemberProfileCache(guildId);
 
     return data;
 }

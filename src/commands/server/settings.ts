@@ -133,11 +133,47 @@ export class Settings extends Subcommand {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: 'add',
                     description: 'Add a new activity role.',
+                    options: [
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "type",
+                            description: ".",
+                            choices: [
+                                { name: "Chat Tracking", value: "chat" },
+                                { name: "Voice Tracking", value: "voice" },
+                            ],
+                            required: true
+                        },
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "role-id",
+                            description: ".",
+                            required: true,
+                        },
+                        {
+                            type: ApplicationCommandOptionType.Number,
+                            name: "required-points",
+                            description: ".",
+                            required: true,
+                        },
+                    ],
                 },
                 {
                     type: ApplicationCommandOptionType.Subcommand,
                     name: 'remove',
                     description: 'Remove an existing activity role.',
+                    options: [
+                        {
+                            type: ApplicationCommandOptionType.String,
+                            name: "type",
+                            description: ".",
+                            choices: [
+                                { name: "Chat Tracking", value: "chat" },
+                                { name: "Voice Tracking", value: "voice" },
+                            ],
+                            required: true
+                        },
+                    ],
                 }
             ]
         },
@@ -291,12 +327,41 @@ export class Settings extends Subcommand {
             });
         }
 
-        await interaction.deferReply({ fetchReply: true });
+        await interaction.deferReply({ fetchReply: true, ephemeral: true });
 
         await this.container.api.modifyActivitySettings(interaction.guild.id, type, options);
 
         return await interaction.editReply({
             content: `Successfully updated ${type} activity tracking settings.`
+        });
+    }
+
+    public async addChatActivityRole(interaction: Subcommand.ChatInputCommandInteraction) {
+        if (!interaction.guild) return;
+
+        const type = interaction.options.getString('type', true);
+        const roleId = interaction.options.getString('role-id', true);
+        const requiredPoints = interaction.options.getNumber('required-points', true);
+
+        if (type !== 'chat' && type !== 'voice') {
+            throw new UserError({
+                identifier: 'INVALID_TYPE',
+                message: 'The provided type is not valid.'
+            });
+        }
+
+        await interaction.deferReply({ fetchReply: true, ephemeral: true });
+
+        const added = await this.container.api.addActivityRoles(interaction.guild.id, type, [{ role_id: roleId, required_points: requiredPoints }]);
+
+        if (!added.length) {
+            return await interaction.editReply({
+                content: `No new role was added, it likely has already been added.`
+            });
+        }
+
+        return await interaction.editReply({
+            content: `Successfully added the activity role <@&${roleId}>.`
         });
     }
 }
