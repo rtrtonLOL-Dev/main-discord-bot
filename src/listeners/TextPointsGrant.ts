@@ -14,7 +14,7 @@ import { AttachmentBuilder, Events, Message, inlineCode } from 'discord.js';
 export class PointsGrant extends Listener {
     public override async run(message: Message) {
         if (message.author.bot || message.system) return;
-        if (!message.guildId || message.guildId !== "1230591981579669566") return;
+        if (!message.guildId) return;
 
         const guildId = message.guildId;
         const memberId = message.author.id;
