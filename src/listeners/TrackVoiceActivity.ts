@@ -20,6 +20,22 @@ export class VoiceRoomCreation extends Listener {
         return task;
     }
 
+    private async _createNewTask(payload: { guildId: string; channelId: string; memberId: string }) {
+        const settings = await this.container.api.getGuildSettings(payload.guildId);
+
+        return await this.container.tasks.create(
+            {
+                name: 'IncrementVoiceActivity',
+                payload: payload,
+            },
+            {
+                repeated: true,
+                interval: settings.voice_activity.cooldown * 1000,
+                customJobOptions: { jobId: payload.memberId }
+            }
+        );
+    }
+
     public override async run(previous: VoiceState, current: VoiceState) {
         if (!current.member || !current.guild) return;
 
@@ -35,21 +51,14 @@ export class VoiceRoomCreation extends Listener {
             if (existingTask) await this.container.tasks.client.removeJobScheduler(existingTask.repeatJobKey!);
         }
         else if (previous.channelId === null && current.channelId !== null) {
-            await this.container.tasks.create(
-                {
-                    name: 'IncrementVoiceActivity',
-                    payload: { guildId: current.guild.id, channelId: current.channelId, memberId: current.member.id },
-                },
-                {
-                    repeated: true,
-                    interval: settings.voice_activity.cooldown * 1000,
-                    customJobOptions: { jobId: current.member.id }
-                }
-            );
+            await this._createNewTask({ guildId: current.guild.id, channelId: current.channelId, memberId: current.member.id });
         }
         else if (previous.channelId !== current.channelId) {
             if (existingTask) {
                 existingTask.updateData({ guildId: current.guild.id, channelId: current.channelId, memberId: current.member.id });
+            }
+            else {
+                await this._createNewTask({ guildId: current.guild.id, channelId: current.channelId, memberId: current.member.id });
             }
         }
 
