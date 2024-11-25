@@ -343,10 +343,10 @@ export async function addActivityRoles(guildId: string, type: 'voice' | 'chat', 
     });
 
     if (type === 'chat') {
-        settings.chat_activity.activity_roles.push(...data);
+        settings.chat_activity.activity_roles = data;
     }
     else if (type === 'voice') {
-        settings.voice_activity.activity_roles.push(...data);
+        settings.voice_activity.activity_roles = data;
     }
 
     await container.cache.set(`settings_${guildId}`, settings);
