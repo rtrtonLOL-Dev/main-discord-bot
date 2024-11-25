@@ -3,6 +3,10 @@ import type { GuildSettings, MemberProfile, ActiveVoiceRoom } from "@/lib/types/
 
 const BASE_URL = 'http://127.0.0.1:3000';
 
+/**
+ * Request the bot's api endpoint.
+ * @returns {Promise<Result>}
+ */
 async function _requestEndpoint<Result extends Object>(
     { path, params, method, body }:
     {
@@ -11,7 +15,7 @@ async function _requestEndpoint<Result extends Object>(
         method: string;
         body?: object
     }
-) {
+): Promise<Result> {
     const url = new URL(path, BASE_URL);
 
     if (params) {
@@ -40,6 +44,11 @@ async function _requestEndpoint<Result extends Object>(
     return data;
 }
 
+/**
+ * Fetch the current guild settings.
+ * @param guildId 
+ * @returns 
+ */
 export async function getGuildSettings(guildId: string) {
     const settings = await container.cache.get(`settings_${guildId}`);
     if (settings)
@@ -54,6 +63,12 @@ export async function getGuildSettings(guildId: string) {
     return data;
 }
 
+/**
+ * Fetch the profile of a guild member.
+ * @param guildId 
+ * @param memberId 
+ * @returns 
+ */
 export async function getMemberProfile(guildId: string, memberId: string) {
     const profile = await container.cache.get(`member-profile_${guildId}:${memberId}`)
     if (profile)
@@ -68,6 +83,13 @@ export async function getMemberProfile(guildId: string, memberId: string) {
     return data;
 }
 
+/**
+ * Increment a member's chat / voice activity points.
+ * @param guildId 
+ * @param memberId 
+ * @param type 
+ * @returns 
+ */
 export async function incrementMemberPoints(guildId: string, memberId: string, type: 'chat' | 'voice') {
     const data = await _requestEndpoint<MemberProfile>({
         path: `/v1/${guildId}/${memberId}/increment-points/${type}`,
@@ -80,6 +102,12 @@ export async function incrementMemberPoints(guildId: string, memberId: string, t
     return data;
 }
 
+/**
+ * Get an active voice room.
+ * @param guildId 
+ * @param roomId 
+ * @returns 
+ */
 export async function getVoiceRoom(guildId: string, roomId: string) {
     const room = await container.cache.get(`voice-room_${guildId}:${roomId}`);
     if (room) return room;
@@ -96,6 +124,13 @@ export async function getVoiceRoom(guildId: string, roomId: string) {
     return data;
 }
 
+/**
+ * Spawn a new voice room.
+ * @param guildId 
+ * @param originId 
+ * @param options 
+ * @returns 
+ */
 export async function createVoiceRoom(guildId: string, originId: string, options: { ownerId: string; roomId: string; }) {
     const data = await _requestEndpoint<ActiveVoiceRoom>({
         path: `/v1/${guildId}/spawn-room/${originId}/spawn/${options.roomId}`,
@@ -112,6 +147,13 @@ export async function createVoiceRoom(guildId: string, originId: string, options
     return data;
 }
 
+/**
+ * Update the settings for an existing voice room.
+ * @param guildId 
+ * @param roomId 
+ * @param options 
+ * @returns 
+ */
 export async function updateVoiceRoom(guildId: string, roomId: string, options: { transferOwner?: string; isLocked?: boolean; }) {
     const data = await _requestEndpoint<ActiveVoiceRoom>({
         path: `/v1/${guildId}/voice-rooms/${roomId}`,
@@ -136,6 +178,12 @@ export async function updateVoiceRoom(guildId: string, roomId: string, options: 
     return data;
 }
 
+/**
+ * Remove an existing voice room.
+ * @param guildId 
+ * @param roomId 
+ * @returns 
+ */
 export async function deleteVoiceRoom(guildId: string, roomId: string) {
     const data = await _requestEndpoint<{ success: boolean; }>({
         path: `/v1/${guildId}/voice-rooms/${roomId}`,
@@ -151,6 +199,13 @@ export async function deleteVoiceRoom(guildId: string, roomId: string) {
     return data.success;
 }
 
+/**
+ * Create a new spawn room for voice room creation.
+ * @param guildId 
+ * @param originId 
+ * @param options 
+ * @returns 
+ */
 export async function createVoiceSpawnRoom(guildId: string, originId: string, options?: { user_limit?: number; can_rename?: boolean; can_lock?: boolean; can_adjust_limit?: boolean }) {
     const settings = await getGuildSettings(guildId);
     const data = await _requestEndpoint<{
@@ -173,6 +228,13 @@ export async function createVoiceSpawnRoom(guildId: string, originId: string, op
     return data;
 }
 
+/**
+ * Modify an existing voice spawn room.
+ * @param guildId 
+ * @param originId 
+ * @param options 
+ * @returns 
+ */
 export async function modifyVoiceSpawnRoom(guildId: string, originId: string, options: { user_limit?: number; can_rename?: boolean; can_lock?: boolean; can_adjust_limit?: boolean }) {
     const settings = await getGuildSettings(guildId);
     const data = await _requestEndpoint<{
@@ -198,6 +260,12 @@ export async function modifyVoiceSpawnRoom(guildId: string, originId: string, op
     return data;
 }
 
+/**
+ * Remove an existing voice spawn room.
+ * @param guildId 
+ * @param originId 
+ * @returns 
+ */
 export async function deleteVoiceSpawnRoom(guildId: string, originId: string) {
     const settings = await getGuildSettings(guildId);
     const data = await _requestEndpoint<{ success: boolean }>({
@@ -217,6 +285,13 @@ export async function deleteVoiceSpawnRoom(guildId: string, originId: string) {
     return data;
 }
 
+/**
+ * Modify how activity is granted for the guild.
+ * @param guildId 
+ * @param type 
+ * @param options 
+ * @returns 
+ */
 export async function modifyActivitySettings(guildId: string, type: 'voice' | 'chat', options: { enabled?: boolean; points?: number; cooldown?: number; }) {
     const settings = await getGuildSettings(guildId);
     const data = await _requestEndpoint<{ success: boolean }>({
@@ -239,6 +314,10 @@ export async function modifyActivitySettings(guildId: string, type: 'voice' | 'c
     return data;
 }
 
+/**
+ * Dump the memeber's profile cache.
+ * @param guildId 
+ */
 export async function dumpMemberProfileCache(guildId: string) {
     for await (const key of container.cache.client.scanIterator({
         TYPE: "string",
@@ -248,6 +327,13 @@ export async function dumpMemberProfileCache(guildId: string) {
     }
 }
 
+/**
+ * Add a new activity role.
+ * @param guildId 
+ * @param type 
+ * @param roles 
+ * @returns 
+ */
 export async function addActivityRoles(guildId: string, type: 'voice' | 'chat', roles: { role_id: string; required_points: number; }[]) {
     const settings = await getGuildSettings(guildId);
     const data = await _requestEndpoint<{ role_id: string; required_points: number; }[]>({
@@ -261,33 +347,6 @@ export async function addActivityRoles(guildId: string, type: 'voice' | 'chat', 
     }
     else if (type === 'voice') {
         settings.voice_activity.activity_roles.push(...data);
-    }
-
-    await container.cache.set(`settings_${guildId}`, settings);
-    await dumpMemberProfileCache(guildId);
-
-    return data;
-}
-
-export async function removeActivityRoles(guildId: string, type: 'voice' | 'chat', roles: string[]) {
-    const settings = await getGuildSettings(guildId);
-    const data = await _requestEndpoint<{ role_id: string; required_points: number; }[]>({
-        path: `/v1/${guildId}/activity-tracking/${type}/roles/add`,
-        method: "POST",
-        body: { roles }
-    });
-
-    if (type === 'chat') {
-        for (const roleId of roles) {
-            const i = settings.chat_activity.activity_roles.findIndex(({ role_id }) => roleId === role_id);
-            settings.chat_activity.activity_roles.splice(i, 1);
-        }
-    }
-    else if (type === 'voice') {
-        for (const roleId of roles) {
-            const i = settings.voice_activity.activity_roles.findIndex(({ role_id }) => roleId === role_id);
-            settings.voice_activity.activity_roles.splice(i, 1);
-        }
     }
 
     await container.cache.set(`settings_${guildId}`, settings);
