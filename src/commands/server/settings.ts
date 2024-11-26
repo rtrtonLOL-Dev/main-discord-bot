@@ -45,30 +45,31 @@ export class Settings extends Subcommand {
                     options: [
                         {
                             type: ApplicationCommandOptionType.String,
-                            name: 'channel_id',
+                            name: 'channel-id',
                             description: "Whether or not the room spawned can be locked.",
-                            required: true
+                            required: true,
+                            autocomplete: true,
                         },
                         {
                             type: ApplicationCommandOptionType.Number,
-                            name: 'user_limit',
+                            name: 'user-limit',
                             description: "Whether or not the room spawned can be locked.",
                             min_value: 1,
                             max_value: 99
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_rename',
+                            name: 'can-rename',
                             description: "Whether or not the room spawned can be locked.",
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_lock',
+                            name: 'can-lock',
                             description: "Whether or not the room spawned can be locked.",
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_adjust_limit',
+                            name: 'can-adjust-limit',
                             description: "Whether or not the room spawned can be locked.",
                         }
                     ]
@@ -80,30 +81,31 @@ export class Settings extends Subcommand {
                     options: [
                         {
                             type: ApplicationCommandOptionType.String,
-                            name: 'channel_id',
+                            name: 'channel-id',
                             description: "Whether or not the room spawned can be locked.",
-                            required: true
+                            required: true,
+                            autocomplete: true,
                         },
                         {
                             type: ApplicationCommandOptionType.Number,
-                            name: 'user_limit',
+                            name: 'user-limit',
                             description: "Whether or not the room spawned can be locked.",
                             min_value: 1,
                             max_value: 99
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_rename',
+                            name: 'can-rename',
                             description: "Whether or not the room spawned can be locked.",
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_lock',
+                            name: 'can-lock',
                             description: "Whether or not the room spawned can be locked.",
                         },
                         {
                             type: ApplicationCommandOptionType.Boolean,
-                            name: 'can_adjust_limit',
+                            name: 'can-adjust-limit',
                             description: "Whether or not the room spawned can be locked.",
                         }
                     ]
@@ -115,10 +117,10 @@ export class Settings extends Subcommand {
                     options: [
                         {
                             type: ApplicationCommandOptionType.String,
-                            name: 'channel_id',
+                            name: 'channel-id',
                             description: "Whether or not the room spawned can be locked.",
-                            required: true
-                            // autocomplete: true
+                            required: true,
+                            autocomplete: true
                         }
                     ]
                 }
@@ -239,15 +241,26 @@ export class Settings extends Subcommand {
     public async createSpawnRoom(interaction: Subcommand.ChatInputCommandInteraction) {
         if (!interaction.guild) return;
 
-        const channelId = interaction.options.getString('channel_id', true);
-        const options = this._removeNullOptions({
-            user_limit: interaction.options.getNumber('user_limit'),
-            can_rename: interaction.options.getBoolean('can_rename'),
-            can_lock: interaction.options.getBoolean('can_lock'),
-            can_adjust_limit: interaction.options.getBoolean('can_adjust_limit'),
-        });
+        const channelId = interaction.options.getString('channel-id', true);
+        const channel = await interaction.guild.channels.fetch(channelId).catch(() => null);
+
+        if (!channel) {
+            throw new UserError({ identifier: "INVALID_CHANNEL", message: "This channel does not exist!" });
+        }
+
+        const voiceRoom = await this.container.api.getVoiceRoom(interaction.guild.id, channelId);
+        if (voiceRoom) {
+            throw new UserError({ identifier: "INVALID_CHANNEL", message: "You cannot set a voice room channel as a spawn room channel!" });
+        }
 
         await interaction.deferReply({ fetchReply: true, ephemeral: true });
+
+        const options = this._removeNullOptions({
+            user_limit: interaction.options.getNumber('user-limit'),
+            can_rename: interaction.options.getBoolean('can-rename'),
+            can_lock: interaction.options.getBoolean('can-lock'),
+            can_adjust_limit: interaction.options.getBoolean('can-adjust-limit'),
+        });
 
         const created = await this.container.api.createVoiceSpawnRoom(interaction.guild.id, channelId, options);
 
@@ -259,12 +272,22 @@ export class Settings extends Subcommand {
     public async modifySpawnRoom(interaction: Subcommand.ChatInputCommandInteraction) {
         if (!interaction.guild) return;
 
-        const channelId = interaction.options.getString('channel_id', true);
+        const settings = await this.container.api.getGuildSettings(interaction.guild.id);
+        const channelId = interaction.options.getString('channel-id', true);
+        const currentOptions = settings.spawn_rooms.find(({ channel_id }) => channel_id === channelId);
+        
+        if (!currentOptions) {
+            throw new UserError({
+                identifier: 'INVALID_CHANNEL',
+                message: 'This channel is not a valid spawn room.'
+            });
+        }
+        
         const options = this._removeNullOptions({
-            user_limit: interaction.options.getNumber('user_limit'),
-            can_rename: interaction.options.getBoolean('can_rename'),
-            can_lock: interaction.options.getBoolean('can_lock'),
-            can_adjust_limit: interaction.options.getBoolean('can_adjust_limit'),
+            user_limit: interaction.options.getNumber('user-limit'),
+            can_rename: interaction.options.getBoolean('can-rename'),
+            can_lock: interaction.options.getBoolean('can-lock'),
+            can_adjust_limit: interaction.options.getBoolean('can-adjust-limit'),
         });
 
         if (!Object.keys(options).length) {
@@ -286,13 +309,22 @@ export class Settings extends Subcommand {
     public async removeSpawnRoom(interaction: Subcommand.ChatInputCommandInteraction) {
         if (!interaction.guild) return;
 
-        const channelId = interaction.options.getString('channel_id', true);
+        const settings = await this.container.api.getGuildSettings(interaction.guild.id);
+        const channelId = interaction.options.getString('channel-id', true);
+        const currentOptions = settings.spawn_rooms.find(({ channel_id }) => channel_id === channelId);
+        
+        if (!currentOptions) {
+            throw new UserError({
+                identifier: 'INVALID_CHANNEL',
+                message: 'This channel is not a valid spawn room.'
+            });
+        }
 
         await interaction.deferReply({ fetchReply: true, ephemeral: true });
 
         const deleted = await this.container.api.deleteVoiceSpawnRoom(interaction.guild.id, channelId);
 
-        if (deleted) {
+        if (deleted.success) {
             return await interaction.editReply({
                 content: `Successfully removed the spawn room <#${channelId}>!`
             });
